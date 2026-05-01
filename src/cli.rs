@@ -86,6 +86,16 @@ pub struct Cli {
 
 impl Cli {
     pub fn into_config(self) -> Result<Config, String> {
+        if self.parallel == 0 {
+            return Err("parallel must be greater than 0".to_string());
+        }
+
+        let kind: BenchmarkKind = self.kind.into();
+
+        if !matches!(kind, BenchmarkKind::Throughput) && self.number == 0 {
+            return Err("number must be greater than 0 for latency benchmarks".to_string());
+        }
+
         let target_input = match (self.connect, self.connect_list) {
             (Some(target), None) => TargetInput::Single(parse_target(&target)?),
             (None, Some(path)) => TargetInput::List(path),
@@ -97,7 +107,7 @@ impl Cli {
             parallel: self.parallel,
             number: self.number,
             warmup: self.warmup,
-            kind: self.kind.into(),
+            kind,
             target_input,
             identity_path: self.identity,
             command: self.command,

@@ -24,6 +24,9 @@ pub async fn execute(config: &Config) -> Result<BenchmarkReport, AppError> {
         config.kind.clone(),
         &samples,
         started.elapsed().as_secs_f64() * 1000.0,
+        config.warmup,
+        config.parallel,
+        config.number,
     ))
 }
 

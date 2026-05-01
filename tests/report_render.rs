@@ -14,7 +14,7 @@ fn renders_json_report() {
         error: None,
     };
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &[sample], 120.0);
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &[sample], 120.0, 0, 1, 1);
     let rendered = render_json_report(&report).unwrap();
 
     assert!(rendered.contains("\"success_count\": 1"));
@@ -31,7 +31,7 @@ fn renders_text_report() {
         error: None,
     };
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &[sample], 120.0);
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &[sample], 120.0, 0, 1, 1);
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("benchmark: auth"));

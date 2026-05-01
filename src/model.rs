@@ -1,6 +1,8 @@
 use serde::Serialize;
 
 use crate::cli::BenchmarkKind;
+use crate::stats::compute_latency_summary;
+use crate::stats::select_measured_window;
 use crate::stats::LatencySummary;
 use crate::target::Target;
 
@@ -28,7 +30,14 @@ pub struct BenchmarkReport {
 }
 
 impl BenchmarkReport {
-    pub fn from_samples(kind: BenchmarkKind, samples: &[SampleOutcome], wall_clock_ms: f64) -> Self {
+    pub fn from_samples(
+        kind: BenchmarkKind,
+        samples: &[SampleOutcome],
+        wall_clock_ms: f64,
+        warmup: usize,
+        parallel: usize,
+        number: usize,
+    ) -> Self {
         let benchmark = kind.as_str();
         let success_count = samples.iter().filter(|sample| sample.success).count();
         let failure_count = samples.len().saturating_sub(success_count);
@@ -42,11 +51,18 @@ impl BenchmarkReport {
             .collect::<Vec<_>>();
         let metrics = samples
             .iter()
+            .filter(|sample| sample.success)
             .filter_map(|sample| sample.metric_value)
             .collect::<Vec<_>>();
-        let summary = crate::stats::compute_latency_summary(&metrics);
+        let measured_metrics = if matches!(kind, BenchmarkKind::Throughput) {
+            metrics
+        } else {
+            select_measured_window(&metrics, warmup, parallel, number)
+        };
+        let summary = compute_latency_summary(&measured_metrics);
         let total_bytes = samples
             .iter()
+            .filter(|sample| sample.success)
             .map(|sample| sample.bytes_transferred)
             .sum::<u64>();
         let average_rate = if matches!(kind, BenchmarkKind::Throughput) && wall_clock_ms > 0.0 {
