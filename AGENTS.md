@@ -13,6 +13,7 @@
 - 已新增：
   - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
   - `tests/target_stats.rs`：统计纯逻辑测试
+  - `src/target.rs`：`user@host:port` 解析与轮询选择逻辑
 
 ## 实现约束
 
