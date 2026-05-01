@@ -4,6 +4,7 @@ use futures::stream::{self, StreamExt};
 
 use crate::cli::Config;
 use crate::error::AppError;
+use crate::error::ErrorKind;
 use crate::model::SampleOutcome;
 use crate::ssh::client::{connect_authenticated, disconnect};
 use crate::target::Target;
@@ -32,6 +33,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                             metric_value: Some(started.elapsed().as_secs_f64() * 1000.0),
                             bytes_transferred: 0,
                             missing_exit_status: false,
+                            error_kind: None,
                             error: None,
                         }
                     }
@@ -41,6 +43,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                         metric_value: None,
                         bytes_transferred: 0,
                         missing_exit_status: false,
+                        error_kind: Some(ErrorKind::Ssh),
                         error: Some(error.to_string()),
                     },
                 };

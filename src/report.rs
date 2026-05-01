@@ -29,11 +29,22 @@ pub fn render_text_report(report: &BenchmarkReport) -> String {
         lines.push(format!("average_rate_bytes_per_ms: {:.3}", average_rate));
     }
 
+    if let Some(success_rate) = report.success_rate {
+        lines.push(format!("successes_per_second: {:.3}", success_rate));
+    }
+
     if report.missing_exit_status > 0 {
         lines.push(format!(
             "missing_exit_status: {}",
             report.missing_exit_status
         ));
+    }
+
+    if !report.error_counts.is_empty() {
+        lines.push("error_counts:".to_string());
+        for (kind, count) in &report.error_counts {
+            lines.push(format!("  {:?}: {}", kind, count));
+        }
     }
 
     lines.join("\n")

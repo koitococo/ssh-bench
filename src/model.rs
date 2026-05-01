@@ -1,6 +1,9 @@
+use std::collections::BTreeMap;
+
 use serde::Serialize;
 
 use crate::cli::BenchmarkKind;
+use crate::error::ErrorKind;
 use crate::stats::LatencySummary;
 use crate::stats::compute_latency_summary;
 use crate::stats::select_measured_window;
@@ -13,6 +16,7 @@ pub struct SampleOutcome {
     pub metric_value: Option<f64>,
     pub bytes_transferred: u64,
     pub missing_exit_status: bool,
+    pub error_kind: Option<ErrorKind>,
     pub error: Option<String>,
 }
 
@@ -23,9 +27,11 @@ pub struct BenchmarkReport {
     pub failure_count: usize,
     pub wall_clock_ms: f64,
     pub average_rate: Option<f64>,
+    pub success_rate: Option<f64>,
     pub total_bytes: Option<u64>,
     pub summary: Option<LatencySummary>,
     pub missing_exit_status: usize,
+    pub error_counts: BTreeMap<ErrorKind, usize>,
     pub errors: Vec<String>,
 }
 
@@ -45,6 +51,13 @@ impl BenchmarkReport {
             .iter()
             .filter(|sample| sample.missing_exit_status)
             .count();
+        let error_counts = samples.iter().filter_map(|sample| sample.error_kind.clone()).fold(
+            BTreeMap::new(),
+            |mut counts, kind| {
+                *counts.entry(kind).or_insert(0) += 1;
+                counts
+            },
+        );
         let errors = samples
             .iter()
             .filter_map(|sample| sample.error.clone())
@@ -70,6 +83,11 @@ impl BenchmarkReport {
         } else {
             None
         };
+        let success_rate = if !matches!(kind, BenchmarkKind::Throughput) && wall_clock_ms > 0.0 {
+            Some(success_count as f64 / (wall_clock_ms / 1000.0))
+        } else {
+            None
+        };
 
         Self {
             benchmark,
@@ -77,9 +95,11 @@ impl BenchmarkReport {
             failure_count,
             wall_clock_ms,
             average_rate,
+            success_rate,
             total_bytes: matches!(kind, BenchmarkKind::Throughput).then_some(total_bytes),
             summary,
             missing_exit_status,
+            error_counts,
             errors,
         }
     }
