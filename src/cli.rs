@@ -12,6 +12,17 @@ pub enum BenchmarkKind {
     Throughput,
 }
 
+impl BenchmarkKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Auth => "auth",
+            Self::Session => "session",
+            Self::Command => "command",
+            Self::Throughput => "throughput",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TargetInput {
     Single(Target),
@@ -26,6 +37,11 @@ pub struct Config {
     pub kind: BenchmarkKind,
     pub target_input: TargetInput,
     pub identity_path: PathBuf,
+    pub command: String,
+    pub throughput_command: String,
+    pub size_bytes: u64,
+    pub file: String,
+    pub json: bool,
 }
 
 #[derive(Debug, Parser)]
@@ -51,6 +67,21 @@ pub struct Cli {
 
     #[arg(short = 'i', long = "identity")]
     pub identity: PathBuf,
+
+    #[arg(long = "command", default_value = "true")]
+    pub command: String,
+
+    #[arg(long = "throughput-command", default_value = "dd if={file} bs=1M count={count}")]
+    pub throughput_command: String,
+
+    #[arg(long = "size", default_value = "1GiB")]
+    pub size: String,
+
+    #[arg(long = "file", default_value = "/dev/zero")]
+    pub file: String,
+
+    #[arg(long = "json", default_value_t = false)]
+    pub json: bool,
 }
 
 impl Cli {
@@ -69,8 +100,33 @@ impl Cli {
             kind: self.kind.into(),
             target_input,
             identity_path: self.identity,
+            command: self.command,
+            throughput_command: self.throughput_command,
+            size_bytes: parse_size_bytes(&self.size)?,
+            file: self.file,
+            json: self.json,
         })
     }
+}
+
+fn parse_size_bytes(input: &str) -> Result<u64, String> {
+    if let Some(value) = input.strip_suffix("GiB") {
+        return value
+            .parse::<u64>()
+            .map(|size| size * 1024 * 1024 * 1024)
+            .map_err(|_| "invalid GiB size".to_string());
+    }
+
+    if let Some(value) = input.strip_suffix("MiB") {
+        return value
+            .parse::<u64>()
+            .map(|size| size * 1024 * 1024)
+            .map_err(|_| "invalid MiB size".to_string());
+    }
+
+    input
+        .parse::<u64>()
+        .map_err(|_| "size must be bytes, MiB or GiB".to_string())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]

@@ -1,3 +1,7 @@
+use std::path::Path;
+
+use crate::error::AppError;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Target {
     pub user: String,
@@ -49,4 +53,13 @@ pub fn pick_target_for_worker(
 
     let index = (iteration + worker_index) % targets.len();
     targets.get(index).cloned()
+}
+
+pub fn load_targets(path: &Path) -> Result<Vec<Target>, AppError> {
+    let content = std::fs::read_to_string(path)?;
+    content
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| parse_target(line).map_err(AppError::Target))
+        .collect()
 }
