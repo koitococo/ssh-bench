@@ -59,7 +59,8 @@ pub fn load_targets(path: &Path) -> Result<Vec<Target>, AppError> {
     let content = std::fs::read_to_string(path)?;
     content
         .lines()
-        .filter(|line| !line.trim().is_empty())
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
         .map(|line| parse_target(line).map_err(AppError::Target))
         .collect()
 }

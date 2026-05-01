@@ -60,3 +60,21 @@ fn renders_error_counts() {
     assert!(rendered.contains("error_counts:"));
     assert!(rendered.contains("Timeout: 1"));
 }
+
+#[test]
+fn renders_aggregate_throughput_field() {
+    let sample = SampleOutcome {
+        target: Target::new("u", "h", 22),
+        success: true,
+        metric_value: Some(4.0),
+        bytes_transferred: 4000,
+        missing_exit_status: false,
+        error_kind: None,
+        error: None,
+    };
+
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Throughput, &[sample], 1000.0, 0, 1, 0);
+    let rendered = render_text_report(&report);
+
+    assert!(rendered.contains("aggregate_rate_bytes_per_ms:"));
+}

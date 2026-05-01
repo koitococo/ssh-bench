@@ -26,7 +26,7 @@ pub struct BenchmarkReport {
     pub success_count: usize,
     pub failure_count: usize,
     pub wall_clock_ms: f64,
-    pub average_rate: Option<f64>,
+    pub aggregate_rate: Option<f64>,
     pub success_rate: Option<f64>,
     pub total_bytes: Option<u64>,
     pub summary: Option<LatencySummary>,
@@ -78,7 +78,7 @@ impl BenchmarkReport {
             .filter(|sample| sample.success)
             .map(|sample| sample.bytes_transferred)
             .sum::<u64>();
-        let average_rate = if matches!(kind, BenchmarkKind::Throughput) && wall_clock_ms > 0.0 {
+        let aggregate_rate = if matches!(kind, BenchmarkKind::Throughput) && wall_clock_ms > 0.0 {
             Some(total_bytes as f64 / wall_clock_ms)
         } else {
             None
@@ -94,7 +94,7 @@ impl BenchmarkReport {
             success_count,
             failure_count,
             wall_clock_ms,
-            average_rate,
+            aggregate_rate,
             success_rate,
             total_bytes: matches!(kind, BenchmarkKind::Throughput).then_some(total_bytes),
             summary,

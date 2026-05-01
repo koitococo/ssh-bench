@@ -1,5 +1,6 @@
 use ssh_bench::stats::compute_latency_summary;
 use ssh_bench::stats::select_measured_window;
+use ssh_bench::target::load_targets;
 use ssh_bench::target::Target;
 use ssh_bench::target::parse_target;
 use ssh_bench::target::pick_target_for_worker;
@@ -36,4 +37,21 @@ fn rotates_targets_by_worker_and_iteration() {
 
     let picked = pick_target_for_worker(&targets, 1, 2).unwrap();
     assert_eq!(picked.host, "h1");
+}
+
+#[test]
+fn loads_targets_from_file_with_trimmed_lines() {
+    let path = std::env::temp_dir().join(format!(
+        "ssh-bench-targets-{}.txt",
+        std::process::id()
+    ));
+    std::fs::write(&path, " alice@example.com:22 \n\n bob@example.com:2222 \n").unwrap();
+
+    let targets = load_targets(&path).unwrap();
+
+    std::fs::remove_file(&path).unwrap();
+
+    assert_eq!(targets.len(), 2);
+    assert_eq!(targets[0].user, "alice");
+    assert_eq!(targets[1].port, 2222);
 }

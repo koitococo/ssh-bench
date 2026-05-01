@@ -25,8 +25,11 @@ pub fn render_text_report(report: &BenchmarkReport) -> String {
         lines.push(format!("total_bytes: {}", total_bytes));
     }
 
-    if let Some(average_rate) = report.average_rate {
-        lines.push(format!("average_rate_bytes_per_ms: {:.3}", average_rate));
+    if let Some(aggregate_rate) = report.aggregate_rate {
+        lines.push(format!(
+            "aggregate_rate_bytes_per_ms: {:.3}",
+            aggregate_rate
+        ));
     }
 
     if let Some(success_rate) = report.success_rate {
