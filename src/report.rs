@@ -21,6 +21,14 @@ pub fn render_text_report(report: &BenchmarkReport) -> String {
         lines.push(format!("p99_ms: {:.3}", summary.p99));
     }
 
+    if let Some(setup_summary) = &report.setup_summary {
+        lines.push(format!("setup_min_ms: {:.3}", setup_summary.min));
+        lines.push(format!("setup_max_ms: {:.3}", setup_summary.max));
+        lines.push(format!("setup_avg_ms: {:.3}", setup_summary.avg));
+        lines.push(format!("setup_p50_ms: {:.3}", setup_summary.p50));
+        lines.push(format!("setup_p99_ms: {:.3}", setup_summary.p99));
+    }
+
     if let Some(total_bytes) = report.total_bytes {
         lines.push(format!("total_bytes: {}", total_bytes));
     }

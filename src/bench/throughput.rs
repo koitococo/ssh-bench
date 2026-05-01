@@ -26,9 +26,11 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
             let target = crate::bench::select_target(&targets, worker, 0)?;
             let command = render_throughput_command(&throughput_command, &file, size_bytes)
                 .map_err(AppError::Config)?;
+            let setup_started = Instant::now();
 
             let sample = match connect_authenticated(&target, &identity_path).await {
                 Ok(mut session) => {
+                    let setup_elapsed_ms = setup_started.elapsed().as_secs_f64() * 1000.0;
                     let read_started = Instant::now();
                     let throughput_result =
                         read_throughput(&session, &command, size_bytes, Duration::from_secs(5))
@@ -47,6 +49,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                                 target,
                                 success: true,
                                 metric_value: Some(rate),
+                                setup_time_ms: Some(setup_elapsed_ms),
                                 bytes_transferred: bytes_read,
                                 missing_exit_status,
                                 error_kind: None,
@@ -57,6 +60,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                             target,
                             success: false,
                             metric_value: None,
+                            setup_time_ms: Some(setup_elapsed_ms),
                             bytes_transferred: 0,
                             missing_exit_status: false,
                             error_kind: Some(classify_error(&error)),
@@ -68,6 +72,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                     target,
                     success: false,
                     metric_value: None,
+                    setup_time_ms: None,
                     bytes_transferred: 0,
                     missing_exit_status: false,
                     error_kind: Some(classify_error(&error)),

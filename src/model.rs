@@ -14,6 +14,7 @@ pub struct SampleOutcome {
     pub target: Target,
     pub success: bool,
     pub metric_value: Option<f64>,
+    pub setup_time_ms: Option<f64>,
     pub bytes_transferred: u64,
     pub missing_exit_status: bool,
     pub error_kind: Option<ErrorKind>,
@@ -30,6 +31,7 @@ pub struct BenchmarkReport {
     pub success_rate: Option<f64>,
     pub total_bytes: Option<u64>,
     pub summary: Option<LatencySummary>,
+    pub setup_summary: Option<LatencySummary>,
     pub missing_exit_status: usize,
     pub error_counts: BTreeMap<ErrorKind, usize>,
     pub errors: Vec<String>,
@@ -76,6 +78,16 @@ impl BenchmarkReport {
                 .collect::<Vec<_>>()
         };
         let summary = compute_latency_summary(&measured_metrics);
+        let setup_metrics = if matches!(kind, BenchmarkKind::Throughput) {
+            samples
+                .iter()
+                .filter(|sample| sample.success)
+                .filter_map(|sample| sample.setup_time_ms)
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
+        let setup_summary = compute_latency_summary(&setup_metrics);
         let total_bytes = samples
             .iter()
             .filter(|sample| sample.success)
@@ -101,6 +113,7 @@ impl BenchmarkReport {
             success_rate,
             total_bytes: matches!(kind, BenchmarkKind::Throughput).then_some(total_bytes),
             summary,
+            setup_summary,
             missing_exit_status,
             error_counts,
             errors,

@@ -10,6 +10,7 @@ fn renders_json_report() {
         target: Target::new("u", "h", 22),
         success: true,
         metric_value: Some(12.0),
+        setup_time_ms: None,
         bytes_transferred: 0,
         missing_exit_status: false,
         error_kind: None,
@@ -28,6 +29,7 @@ fn renders_text_report() {
         target: Target::new("u", "h", 22),
         success: true,
         metric_value: Some(12.0),
+        setup_time_ms: None,
         bytes_transferred: 0,
         missing_exit_status: false,
         error_kind: None,
@@ -48,6 +50,7 @@ fn renders_error_counts() {
         target: Target::new("u", "h", 22),
         success: false,
         metric_value: None,
+        setup_time_ms: None,
         bytes_transferred: 0,
         missing_exit_status: false,
         error_kind: Some(ErrorKind::CommandTimeout),
@@ -67,6 +70,7 @@ fn renders_aggregate_throughput_field() {
         target: Target::new("u", "h", 22),
         success: true,
         metric_value: Some(4.0),
+        setup_time_ms: Some(12.0),
         bytes_transferred: 4000,
         missing_exit_status: false,
         error_kind: None,
@@ -77,6 +81,7 @@ fn renders_aggregate_throughput_field() {
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("aggregate_rate_bytes_per_ms:"));
+    assert!(rendered.contains("setup_avg_ms:"));
 }
 
 #[test]
@@ -86,6 +91,7 @@ fn trims_latency_window_before_filtering_successes() {
             target: Target::new("u", "h", 22),
             success: false,
             metric_value: None,
+            setup_time_ms: None,
             bytes_transferred: 0,
             missing_exit_status: false,
             error_kind: Some(ErrorKind::CommandTimeout),
@@ -95,6 +101,7 @@ fn trims_latency_window_before_filtering_successes() {
             target: Target::new("u", "h", 22),
             success: true,
             metric_value: Some(10.0),
+            setup_time_ms: None,
             bytes_transferred: 0,
             missing_exit_status: false,
             error_kind: None,
@@ -104,6 +111,7 @@ fn trims_latency_window_before_filtering_successes() {
             target: Target::new("u", "h", 22),
             success: true,
             metric_value: Some(30.0),
+            setup_time_ms: None,
             bytes_transferred: 0,
             missing_exit_status: false,
             error_kind: None,
@@ -113,6 +121,7 @@ fn trims_latency_window_before_filtering_successes() {
             target: Target::new("u", "h", 22),
             success: false,
             metric_value: None,
+            setup_time_ms: None,
             bytes_transferred: 0,
             missing_exit_status: false,
             error_kind: Some(ErrorKind::CommandTimeout),
