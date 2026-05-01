@@ -78,3 +78,51 @@ fn renders_aggregate_throughput_field() {
 
     assert!(rendered.contains("aggregate_rate_bytes_per_ms:"));
 }
+
+#[test]
+fn trims_latency_window_before_filtering_successes() {
+    let samples = vec![
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: false,
+            metric_value: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: Some(ErrorKind::CommandTimeout),
+            error: Some("warmup fail".to_string()),
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(10.0),
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(30.0),
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: false,
+            metric_value: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: Some(ErrorKind::CommandTimeout),
+            error: Some("tail fail".to_string()),
+        },
+    ];
+
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Command, &samples, 1000.0, 1, 1, 2);
+    let summary = report.summary.expect("summary expected");
+
+    assert_eq!(summary.min, 10.0);
+    assert_eq!(summary.max, 30.0);
+}

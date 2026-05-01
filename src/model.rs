@@ -62,15 +62,18 @@ impl BenchmarkReport {
             .iter()
             .filter_map(|sample| sample.error.clone())
             .collect::<Vec<_>>();
-        let metrics = samples
-            .iter()
-            .filter(|sample| sample.success)
-            .filter_map(|sample| sample.metric_value)
-            .collect::<Vec<_>>();
         let measured_metrics = if matches!(kind, BenchmarkKind::Throughput) {
-            metrics
+            samples
+                .iter()
+                .filter(|sample| sample.success)
+                .filter_map(|sample| sample.metric_value)
+                .collect::<Vec<_>>()
         } else {
-            select_measured_window(&metrics, warmup, parallel, number)
+            select_measured_window(samples, warmup, parallel, number)
+                .into_iter()
+                .filter(|sample| sample.success)
+                .filter_map(|sample| sample.metric_value)
+                .collect::<Vec<_>>()
         };
         let summary = compute_latency_summary(&measured_metrics);
         let total_bytes = samples
