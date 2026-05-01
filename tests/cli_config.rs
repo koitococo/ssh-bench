@@ -1,5 +1,6 @@
 use clap::Parser;
 use ssh_bench::cli::{BenchmarkKind, Cli, TargetInput};
+use ssh_bench::ssh::session::render_throughput_command;
 
 #[test]
 fn parses_identity_and_single_target_config() {
@@ -30,4 +31,16 @@ fn parses_identity_and_single_target_config() {
         TargetInput::Single(target) => assert_eq!(target.host, "example.com"),
         TargetInput::List(_) => panic!("expected single target"),
     }
+}
+
+#[test]
+fn renders_default_throughput_command() {
+    let command = render_throughput_command(
+        "dd if={file} bs=1M count={count}",
+        "/dev/zero",
+        1024 * 1024 * 1024,
+    )
+    .unwrap();
+
+    assert_eq!(command, "dd if=/dev/zero bs=1M count=1024");
 }
