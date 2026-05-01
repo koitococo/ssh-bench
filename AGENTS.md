@@ -14,6 +14,8 @@
   - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
   - `tests/target_stats.rs`：统计纯逻辑测试
   - `src/target.rs`：`user@host:port` 解析与轮询选择逻辑
+  - `src/cli.rs`：CLI 参数解析与基础配置归一化
+  - `tests/cli_config.rs`：CLI 单目标配置测试
 
 ## 实现约束
 
