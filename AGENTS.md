@@ -9,7 +9,7 @@
   - 过程性实施文档已写入 `.tmp/implementation-context.md`
   - 过程性实施计划已写入 `.tmp/2026-05-02-ssh-bench-implementation-plan.md`
 - 正在进行：
-  - 实现 runner 行为细化与参数约束补全
+  - 完成最终格式化、静态检查与收尾验证
 - 已新增：
   - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
   - `tests/target_stats.rs`：统计纯逻辑测试
@@ -24,6 +24,8 @@
   - `src/ssh/client.rs`：SSH 连接与公钥认证封装
   - `src/bench/`：四类 benchmark runner 骨架与分发入口
   - `tests/report_render.rs`：报告渲染测试
+  - `src/model.rs`：延迟模式按 warmup/parallel/number 裁剪成功样本后再统计
+  - `tests/cli_config.rs`：补充 CLI 互斥/边界/size 取整测试
 
 ## 实现约束
 
