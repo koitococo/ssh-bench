@@ -25,19 +25,19 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
 
         async move {
             let target = crate::bench::select_target(&targets, worker, 0)?;
-            let started = Instant::now();
             let command = render_throughput_command(&throughput_command, &file, size_bytes)
                 .map_err(AppError::Config)?;
 
             let sample = match connect_authenticated(&target, &identity_path).await {
                 Ok(mut session) => {
+                    let read_started = Instant::now();
                     let throughput_result =
                         read_throughput(&session, &command, size_bytes, Duration::from_secs(5))
                             .await;
                     disconnect(&mut session).await?;
                     match throughput_result {
                         Ok((bytes_read, _status, missing_exit_status)) => {
-                            let elapsed_ms = started.elapsed().as_secs_f64() * 1000.0;
+                            let elapsed_ms = read_started.elapsed().as_secs_f64() * 1000.0;
                             let rate = if elapsed_ms > 0.0 {
                                 bytes_read as f64 / elapsed_ms
                             } else {
