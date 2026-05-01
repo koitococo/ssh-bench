@@ -33,6 +33,7 @@
   - `src/report.rs`：throughput 汇总速率字段命名改为 aggregate rate
   - `src/bench/throughput.rs`：吞吐率按读取阶段计时，不计入连接建立时间
   - `src/error.rs`：细化到认证/session/exec/命令超时/读取超时等错误类别
+  - `src/ssh/auth.rs`：区分私钥文件不存在与私钥格式错误
 
 ## 实现约束
 
