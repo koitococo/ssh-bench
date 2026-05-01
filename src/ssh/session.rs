@@ -149,11 +149,11 @@ pub fn classify_error(error: &AppError) -> ErrorKind {
         AppError::Config(message) if message.starts_with("tcp_connect:") => ErrorKind::TcpConnect,
         AppError::Config(message) if message.starts_with("ssh_handshake:") => ErrorKind::SshHandshake,
         AppError::Config(message) if message.starts_with("key_format:") => ErrorKind::KeyFormat,
+        AppError::Config(message) if message.starts_with("authentication:") => ErrorKind::Authentication,
         AppError::Config(message) if message.starts_with("session_open:") => ErrorKind::SessionOpen,
         AppError::Config(message) if message.starts_with("exec:") => ErrorKind::Exec,
         AppError::Config(message) if message.starts_with("command_timeout:") => ErrorKind::CommandTimeout,
         AppError::Config(message) if message.starts_with("read_timeout:") => ErrorKind::ReadTimeout,
-        AppError::Config(message) if message.contains("authentication failed") => ErrorKind::Authentication,
         _ => error.kind(),
     }
 }

@@ -46,10 +46,12 @@ pub async fn connect_authenticated(
             ),
         )
         .await
-        .map_err(|error| AppError::Ssh(error))?;
+        .map_err(|error| AppError::Config(format!("authentication: {}", error)))?;
 
     if !auth_result.success() {
-        return Err(AppError::Config("public key authentication failed".to_string()));
+        return Err(AppError::Config(
+            "authentication: public key authentication failed".to_string(),
+        ));
     }
 
     Ok(session)
