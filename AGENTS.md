@@ -34,6 +34,7 @@
   - `src/bench/throughput.rs`：吞吐率按读取阶段计时，不计入连接建立时间
   - `src/error.rs`：细化到认证/session/exec/命令超时/读取超时等错误类别
   - `src/ssh/auth.rs`：区分私钥文件不存在与私钥格式错误
+  - `src/model.rs`：延迟模式按 warmup/parallel/number 裁剪原始样本窗口后再过滤成功样本统计
 
 ## 实现约束
 
