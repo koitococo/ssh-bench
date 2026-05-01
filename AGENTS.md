@@ -32,6 +32,7 @@
   - `src/target.rs`：支持 host-list 行裁剪空白
   - `src/report.rs`：throughput 汇总速率字段命名改为 aggregate rate
   - `src/bench/throughput.rs`：吞吐率按读取阶段计时，不计入连接建立时间
+  - `src/error.rs`：细化到认证/session/exec/命令超时/读取超时等错误类别
 
 ## 实现约束
 
