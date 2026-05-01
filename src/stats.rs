@@ -30,6 +30,23 @@ pub fn compute_latency_summary(samples: &[f64]) -> Option<LatencySummary> {
     })
 }
 
+pub fn select_measured_window<T: Clone>(
+    values: &[T],
+    warmup: usize,
+    parallel: usize,
+    number: usize,
+) -> Vec<T> {
+    let remaining = values.len().saturating_sub(warmup);
+    let middle_len = remaining.saturating_sub(parallel).min(number);
+
+    values
+        .iter()
+        .skip(warmup)
+        .take(middle_len)
+        .cloned()
+        .collect()
+}
+
 fn percentile(sorted: &[f64], quantile: f64) -> f64 {
     let index = ((sorted.len() as f64 * quantile).ceil() as usize).saturating_sub(1);
     sorted[index]
