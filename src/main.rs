@@ -10,7 +10,9 @@ async fn main() {
 
 async fn run() -> Result<(), ssh_bench::error::AppError> {
     let cli = ssh_bench::cli::Cli::parse();
-    let config = cli.into_config().map_err(ssh_bench::error::AppError::Config)?;
+    let config = cli
+        .into_config()
+        .map_err(ssh_bench::error::AppError::Config)?;
     let report = ssh_bench::bench::execute(&config).await?;
 
     if config.json {

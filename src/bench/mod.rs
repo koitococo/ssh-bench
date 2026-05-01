@@ -8,7 +8,7 @@ use std::time::Instant;
 use crate::cli::{BenchmarkKind, Config, TargetInput};
 use crate::error::AppError;
 use crate::model::BenchmarkReport;
-use crate::target::{load_targets, pick_target_for_worker, Target};
+use crate::target::{Target, load_targets, pick_target_for_worker};
 
 pub async fn execute(config: &Config) -> Result<BenchmarkReport, AppError> {
     let targets = resolve_targets(&config.target_input)?;
@@ -41,7 +41,11 @@ pub fn resolve_targets(input: &TargetInput) -> Result<Vec<Target>, AppError> {
     }
 }
 
-pub fn select_target(targets: &[Target], worker_index: usize, iteration: usize) -> Result<Target, AppError> {
+pub fn select_target(
+    targets: &[Target],
+    worker_index: usize,
+    iteration: usize,
+) -> Result<Target, AppError> {
     pick_target_for_worker(targets, worker_index, iteration)
         .ok_or_else(|| AppError::Config("no targets available".to_string()))
 }

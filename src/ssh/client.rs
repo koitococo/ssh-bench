@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use russh::Disconnect;
 use russh::client;
 use russh::keys::PrivateKeyWithHashAlg;
-use russh::Disconnect;
 use russh::keys::ssh_key;
 
 use crate::error::AppError;
@@ -32,8 +32,8 @@ pub async fn connect_authenticated(
         inactivity_timeout: Some(Duration::from_secs(5)),
         ..Default::default()
     });
-    let mut session = client::connect(config, (target.host.as_str(), target.port), AcceptAllClient)
-        .await?;
+    let mut session =
+        client::connect(config, (target.host.as_str(), target.port), AcceptAllClient).await?;
     let key = load_private_key(identity_path)?;
     let auth_result = session
         .authenticate_publickey(
@@ -46,15 +46,15 @@ pub async fn connect_authenticated(
         .await?;
 
     if !auth_result.success() {
-        return Err(AppError::Config("public key authentication failed".to_string()));
+        return Err(AppError::Config(
+            "public key authentication failed".to_string(),
+        ));
     }
 
     Ok(session)
 }
 
-pub async fn disconnect(
-    session: &mut client::Handle<AcceptAllClient>,
-) -> Result<(), AppError> {
+pub async fn disconnect(session: &mut client::Handle<AcceptAllClient>) -> Result<(), AppError> {
     session
         .disconnect(Disconnect::ByApplication, "", "English")
         .await?;

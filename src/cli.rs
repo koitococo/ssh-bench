@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use crate::target::{parse_target, Target};
+use crate::target::{Target, parse_target};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BenchmarkKind {
@@ -71,7 +71,10 @@ pub struct Cli {
     #[arg(long = "command", default_value = "true")]
     pub command: String,
 
-    #[arg(long = "throughput-command", default_value = "dd if={file} bs=1M count={count}")]
+    #[arg(
+        long = "throughput-command",
+        default_value = "dd if={file} bs=1M count={count}"
+    )]
     pub throughput_command: String,
 
     #[arg(long = "size", default_value = "1GiB")]
@@ -99,8 +102,12 @@ impl Cli {
         let target_input = match (self.connect, self.connect_list) {
             (Some(target), None) => TargetInput::Single(parse_target(&target)?),
             (None, Some(path)) => TargetInput::List(path),
-            (Some(_), Some(_)) => return Err("--connect and --connect-list are mutually exclusive".to_string()),
-            (None, None) => return Err("either --connect or --connect-list is required".to_string()),
+            (Some(_), Some(_)) => {
+                return Err("--connect and --connect-list are mutually exclusive".to_string());
+            }
+            (None, None) => {
+                return Err("either --connect or --connect-list is required".to_string());
+            }
         };
 
         Ok(Config {

@@ -13,17 +13,19 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
     for worker in 0..config.parallel.max(1) {
         let target = crate::bench::select_target(targets, worker, 0)?;
         let started = Instant::now();
-        let command = render_throughput_command(
-            &config.throughput_command,
-            &config.file,
-            config.size_bytes,
-        )
-        .map_err(AppError::Config)?;
+        let command =
+            render_throughput_command(&config.throughput_command, &config.file, config.size_bytes)
+                .map_err(AppError::Config)?;
 
         match connect_authenticated(&target, &config.identity_path).await {
             Ok(mut session) => {
-                let throughput_result =
-                    read_throughput(&session, &command, config.size_bytes, Duration::from_secs(5)).await;
+                let throughput_result = read_throughput(
+                    &session,
+                    &command,
+                    config.size_bytes,
+                    Duration::from_secs(5),
+                )
+                .await;
                 disconnect(&mut session).await?;
                 match throughput_result {
                     Ok((bytes_read, _status, missing_exit_status)) => {

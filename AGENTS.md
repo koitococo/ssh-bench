@@ -4,12 +4,13 @@
 
 - 项目名：`ssh-bench`
 - 当前阶段：实现中
+- 当前阶段：实现中
 - 已完成：
   - 需求设计文档已写入 `docs/superpowers/specs/2026-05-02-ssh-bench-design.md`
   - 过程性实施文档已写入 `.tmp/implementation-context.md`
   - 过程性实施计划已写入 `.tmp/2026-05-02-ssh-bench-implementation-plan.md`
 - 正在进行：
-  - 完成最终格式化、静态检查与收尾验证
+  - 收尾与交付确认
 - 已新增：
   - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
   - `tests/target_stats.rs`：统计纯逻辑测试

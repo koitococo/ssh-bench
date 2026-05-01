@@ -1,9 +1,9 @@
 use serde::Serialize;
 
 use crate::cli::BenchmarkKind;
+use crate::stats::LatencySummary;
 use crate::stats::compute_latency_summary;
 use crate::stats::select_measured_window;
-use crate::stats::LatencySummary;
 use crate::target::Target;
 
 #[derive(Debug, Clone)]

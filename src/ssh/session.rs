@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use russh::client;
 use russh::ChannelMsg;
+use russh::client;
 use tokio::time::timeout;
 
 use crate::error::AppError;
@@ -54,7 +54,9 @@ pub async fn execute_command(
             ChannelMsg::Data { ref data } => {
                 bytes_read += data.len() as u64;
             }
-            ChannelMsg::ExitStatus { exit_status: status } => {
+            ChannelMsg::ExitStatus {
+                exit_status: status,
+            } => {
                 exit_status = Some(status);
             }
             ChannelMsg::Eof | ChannelMsg::Close => {
@@ -101,7 +103,9 @@ pub async fn read_throughput(
                 let remaining = size_limit.saturating_sub(total) as usize;
                 total += data.len().min(remaining) as u64;
             }
-            ChannelMsg::ExitStatus { exit_status: status } => {
+            ChannelMsg::ExitStatus {
+                exit_status: status,
+            } => {
                 exit_status = Some(status);
             }
             ChannelMsg::Eof | ChannelMsg::Close => {

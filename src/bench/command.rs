@@ -18,17 +18,20 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
 
         match connect_authenticated(&target, &config.identity_path).await {
             Ok(mut session) => {
-                let command_result = execute_command(&session, &config.command, Duration::from_secs(5)).await;
+                let command_result =
+                    execute_command(&session, &config.command, Duration::from_secs(5)).await;
                 disconnect(&mut session).await?;
                 match command_result {
-                    Ok((_status, missing_exit_status, _bytes_read)) => samples.push(SampleOutcome {
-                        target,
-                        success: true,
-                        metric_value: Some(started.elapsed().as_secs_f64() * 1000.0),
-                        bytes_transferred: 0,
-                        missing_exit_status,
-                        error: None,
-                    }),
+                    Ok((_status, missing_exit_status, _bytes_read)) => {
+                        samples.push(SampleOutcome {
+                            target,
+                            success: true,
+                            metric_value: Some(started.elapsed().as_secs_f64() * 1000.0),
+                            bytes_transferred: 0,
+                            missing_exit_status,
+                            error: None,
+                        })
+                    }
                     Err(error) => samples.push(SampleOutcome {
                         target,
                         success: false,

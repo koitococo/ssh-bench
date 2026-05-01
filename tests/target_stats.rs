@@ -1,8 +1,8 @@
 use ssh_bench::stats::compute_latency_summary;
 use ssh_bench::stats::select_measured_window;
+use ssh_bench::target::Target;
 use ssh_bench::target::parse_target;
 use ssh_bench::target::pick_target_for_worker;
-use ssh_bench::target::Target;
 
 #[test]
 fn exports_stats_module() {

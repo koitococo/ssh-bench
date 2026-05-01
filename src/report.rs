@@ -30,7 +30,10 @@ pub fn render_text_report(report: &BenchmarkReport) -> String {
     }
 
     if report.missing_exit_status > 0 {
-        lines.push(format!("missing_exit_status: {}", report.missing_exit_status));
+        lines.push(format!(
+            "missing_exit_status: {}",
+            report.missing_exit_status
+        ));
     }
 
     lines.join("\n")
