@@ -145,6 +145,7 @@ pub async fn read_throughput(
 
 pub fn classify_error(error: &AppError) -> ErrorKind {
     match error {
+        AppError::Config(message) if message.starts_with("key_read:") => ErrorKind::KeyRead,
         AppError::Config(message) if message.starts_with("tcp_connect:") => ErrorKind::TcpConnect,
         AppError::Config(message) if message.starts_with("ssh_handshake:") => ErrorKind::SshHandshake,
         AppError::Config(message) if message.starts_with("key_format:") => ErrorKind::KeyFormat,
