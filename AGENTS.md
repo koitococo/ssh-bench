@@ -10,7 +10,7 @@
   - 过程性实施文档已写入 `.tmp/implementation-context.md`
   - 过程性实施计划已写入 `.tmp/2026-05-02-ssh-bench-implementation-plan.md`
 - 正在进行：
-  - 继续补齐 host-list 行为与剩余报告细节
+  - 继续评估剩余设计差距并收尾
 - 已新增：
   - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
   - `tests/target_stats.rs`：统计纯逻辑测试
@@ -29,6 +29,8 @@
   - `tests/cli_config.rs`：补充 CLI 互斥/边界/size 取整测试
   - `src/error.rs`：稳定错误类别枚举 `ErrorKind`
   - `src/report.rs`：增加错误分布与成功速率输出
+  - `src/target.rs`：支持 host-list 行裁剪空白
+  - `src/report.rs`：throughput 汇总速率字段命名改为 aggregate rate
 
 ## 实现约束
 
