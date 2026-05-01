@@ -50,7 +50,7 @@ fn renders_error_counts() {
         metric_value: None,
         bytes_transferred: 0,
         missing_exit_status: false,
-        error_kind: Some(ErrorKind::Timeout),
+        error_kind: Some(ErrorKind::CommandTimeout),
         error: Some("timeout".to_string()),
     };
 
@@ -58,7 +58,7 @@ fn renders_error_counts() {
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("error_counts:"));
-    assert!(rendered.contains("Timeout: 1"));
+    assert!(rendered.contains("CommandTimeout: 1"));
 }
 
 #[test]

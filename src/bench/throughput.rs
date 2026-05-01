@@ -4,10 +4,9 @@ use futures::future::join_all;
 
 use crate::cli::Config;
 use crate::error::AppError;
-use crate::error::ErrorKind;
 use crate::model::SampleOutcome;
 use crate::ssh::client::{connect_authenticated, disconnect};
-use crate::ssh::session::{read_throughput, render_throughput_command};
+use crate::ssh::session::{classify_error, read_throughput, render_throughput_command};
 use crate::target::Target;
 
 pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcome>, AppError> {
@@ -60,7 +59,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                             metric_value: None,
                             bytes_transferred: 0,
                             missing_exit_status: false,
-                            error_kind: Some(error.kind()),
+                            error_kind: Some(classify_error(&error)),
                             error: Some(error.to_string()),
                         },
                     }
@@ -71,7 +70,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                     metric_value: None,
                     bytes_transferred: 0,
                     missing_exit_status: false,
-                    error_kind: Some(ErrorKind::Ssh),
+                    error_kind: Some(classify_error(&error)),
                     error: Some(error.to_string()),
                 },
             };

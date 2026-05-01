@@ -8,10 +8,17 @@ use thiserror::Error;
 pub enum ErrorKind {
     Config,
     Target,
+    KeyRead,
+    KeyFormat,
+    TcpConnect,
+    SshHandshake,
+    Authentication,
+    SessionOpen,
+    Exec,
+    CommandTimeout,
+    ReadTimeout,
     Io,
-    Ssh,
-    Key,
-    Timeout,
+    Protocol,
 }
 
 #[derive(Debug, Error)]
@@ -36,9 +43,9 @@ impl AppError {
             Self::Config(_) => ErrorKind::Config,
             Self::Target(_) => ErrorKind::Target,
             Self::Io(_) => ErrorKind::Io,
-            Self::Ssh(_) => ErrorKind::Ssh,
-            Self::Key(_) => ErrorKind::Key,
-            Self::Timeout(_) => ErrorKind::Timeout,
+            Self::Ssh(_) => ErrorKind::Protocol,
+            Self::Key(_) => ErrorKind::KeyFormat,
+            Self::Timeout(_) => ErrorKind::CommandTimeout,
         }
     }
 }

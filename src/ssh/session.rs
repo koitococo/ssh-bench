@@ -5,6 +5,7 @@ use russh::client;
 use tokio::time::timeout;
 
 use crate::error::AppError;
+use crate::error::ErrorKind;
 
 const MIB: u64 = 1024 * 1024;
 
@@ -34,8 +35,16 @@ pub async fn execute_command(
     command: &str,
     wait_timeout: Duration,
 ) -> Result<(Option<u32>, bool, u64), AppError> {
-    let mut channel = open_session(session).await?;
-    channel.exec(true, command).await?;
+    let mut channel = open_session(session).await.map_err(|error| {
+        AppError::Config(format!(
+            "session_open: {}",
+            error.to_string()
+        ))
+    })?;
+    channel
+        .exec(true, command)
+        .await
+        .map_err(|error| AppError::Config(format!("exec: {}", error)))?;
 
     let mut exit_status = None;
     let mut missing_exit_status = false;
@@ -44,7 +53,10 @@ pub async fn execute_command(
     loop {
         let message = timeout(wait_timeout, channel.wait())
             .await
-            .map_err(|_| AppError::Timeout("waiting for command event timed out"))?;
+            .map_err(|_| AppError::Config(format!(
+                "command_timeout: {}",
+                "waiting for command event timed out"
+            )))?;
 
         let Some(message) = message else {
             break;
@@ -79,8 +91,16 @@ pub async fn read_throughput(
     size_limit: u64,
     wait_timeout: Duration,
 ) -> Result<(u64, Option<u32>, bool), AppError> {
-    let mut channel = open_session(session).await?;
-    channel.exec(true, command).await?;
+    let mut channel = open_session(session).await.map_err(|error| {
+        AppError::Config(format!(
+            "session_open: {}",
+            error.to_string()
+        ))
+    })?;
+    channel
+        .exec(true, command)
+        .await
+        .map_err(|error| AppError::Config(format!("exec: {}", error)))?;
 
     let mut total = 0_u64;
     let mut exit_status = None;
@@ -92,7 +112,10 @@ pub async fn read_throughput(
 
         let message = timeout(wait_timeout, channel.wait())
             .await
-            .map_err(|_| AppError::Timeout("reading throughput stream timed out"))?;
+            .map_err(|_| AppError::Config(format!(
+                "read_timeout: {}",
+                "reading throughput stream timed out"
+            )))?;
 
         let Some(message) = message else {
             break;
@@ -118,4 +141,18 @@ pub async fn read_throughput(
     let missing_exit_status = exit_status.is_none();
     channel.close().await?;
     Ok((total.min(size_limit), exit_status, missing_exit_status))
+}
+
+pub fn classify_error(error: &AppError) -> ErrorKind {
+    match error {
+        AppError::Config(message) if message.starts_with("tcp_connect:") => ErrorKind::TcpConnect,
+        AppError::Config(message) if message.starts_with("ssh_handshake:") => ErrorKind::SshHandshake,
+        AppError::Config(message) if message.starts_with("key_format:") => ErrorKind::KeyFormat,
+        AppError::Config(message) if message.starts_with("session_open:") => ErrorKind::SessionOpen,
+        AppError::Config(message) if message.starts_with("exec:") => ErrorKind::Exec,
+        AppError::Config(message) if message.starts_with("command_timeout:") => ErrorKind::CommandTimeout,
+        AppError::Config(message) if message.starts_with("read_timeout:") => ErrorKind::ReadTimeout,
+        AppError::Config(message) if message.contains("authentication failed") => ErrorKind::Authentication,
+        _ => error.kind(),
+    }
 }
