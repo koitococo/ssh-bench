@@ -9,8 +9,10 @@
   - 过程性实施文档已写入 `.tmp/implementation-context.md`
   - 过程性实施计划已写入 `.tmp/2026-05-02-ssh-bench-implementation-plan.md`
 - 正在进行：
-  - 搭建 Rust crate 骨架
-  - 优先补齐纯逻辑模块与最小可测试统计能力
+  - 实现 target 解析与 CLI 配置归一化
+- 已新增：
+  - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
+  - `tests/target_stats.rs`：统计纯逻辑测试
 
 ## 实现约束
 
