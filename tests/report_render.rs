@@ -155,3 +155,22 @@ fn reports_missing_exit_status_count() {
 
     assert!(rendered.contains("missing_exit_status: 1"));
 }
+
+#[test]
+fn reports_missing_exit_status_count_for_throughput() {
+    let failed = SampleOutcome {
+        target: Target::new("u", "h", 22),
+        success: false,
+        metric_value: None,
+        setup_time_ms: None,
+        bytes_transferred: 0,
+        missing_exit_status: true,
+        error_kind: Some(ErrorKind::ReadTimeout),
+        error: Some("stream closed without exit status".to_string()),
+    };
+
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Throughput, &[failed], 1000.0, 0, 1, 0);
+    let rendered = render_text_report(&report);
+
+    assert!(rendered.contains("missing_exit_status: 1"));
+}

@@ -98,23 +98,24 @@ pub async fn read_throughput(
     command: &str,
     size_limit: u64,
     wait_timeout: Duration,
-) -> Result<(u64, Option<u32>, bool, f64, f64), AppError> {
+) -> Result<(u64, Option<u32>, bool, f64, f64), (AppError, bool)> {
     let setup_started = std::time::Instant::now();
     let mut channel = open_session(session).await.map_err(|error| {
-        AppError::Config(format!(
-            "session_open: {}",
-            error.to_string()
-        ))
+        (
+            AppError::Config(format!("session_open: {}", error.to_string())),
+            false,
+        )
     })?;
     channel
         .exec(true, command)
         .await
-        .map_err(|error| AppError::Config(format!("exec: {}", error)))?;
+        .map_err(|error| (AppError::Config(format!("exec: {}", error)), false))?;
     let setup_elapsed_ms = setup_started.elapsed().as_secs_f64() * 1000.0;
     let read_started = std::time::Instant::now();
 
     let mut total = 0_u64;
     let mut exit_status = None;
+    let mut missing_exit_status = false;
 
     loop {
         if total >= size_limit {
@@ -123,10 +124,15 @@ pub async fn read_throughput(
 
         let message = timeout(wait_timeout, channel.wait())
             .await
-            .map_err(|_| AppError::Config(format!(
-                "read_timeout: {}",
-                "reading throughput stream timed out"
-            )))?;
+            .map_err(|_| {
+                (
+                    AppError::Config(format!(
+                        "read_timeout: {}",
+                        "reading throughput stream timed out"
+                    )),
+                    exit_status.is_none(),
+                )
+            })?;
 
         let Some(message) = message else {
             break;
@@ -143,15 +149,23 @@ pub async fn read_throughput(
                 exit_status = Some(status);
             }
             ChannelMsg::Eof | ChannelMsg::Close => {
+                if exit_status.is_none() {
+                    missing_exit_status = true;
+                }
                 break;
             }
             _ => {}
         }
     }
 
-    let missing_exit_status = exit_status.is_none();
+    if exit_status.is_none() {
+        missing_exit_status = true;
+    }
     let read_elapsed_ms = read_started.elapsed().as_secs_f64() * 1000.0;
-    channel.close().await?;
+    channel
+        .close()
+        .await
+        .map_err(|error| (AppError::Config(format!("exec: {}", error)), missing_exit_status))?;
     Ok((
         total.min(size_limit),
         exit_status,
