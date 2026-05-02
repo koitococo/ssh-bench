@@ -82,6 +82,7 @@ fn renders_aggregate_throughput_field() {
 
     assert!(rendered.contains("aggregate_rate_bytes_per_ms:"));
     assert!(rendered.contains("setup_avg_ms:"));
+    assert!(rendered.contains("p50_bytes_per_ms:"));
 }
 
 #[test]

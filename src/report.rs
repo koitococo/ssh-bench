@@ -14,11 +14,19 @@ pub fn render_text_report(report: &BenchmarkReport) -> String {
     ];
 
     if let Some(summary) = &report.summary {
-        lines.push(format!("min_ms: {:.3}", summary.min));
-        lines.push(format!("max_ms: {:.3}", summary.max));
-        lines.push(format!("avg_ms: {:.3}", summary.avg));
-        lines.push(format!("p50_ms: {:.3}", summary.p50));
-        lines.push(format!("p99_ms: {:.3}", summary.p99));
+        if report.benchmark == "throughput" {
+            lines.push(format!("min_bytes_per_ms: {:.3}", summary.min));
+            lines.push(format!("max_bytes_per_ms: {:.3}", summary.max));
+            lines.push(format!("avg_bytes_per_ms: {:.3}", summary.avg));
+            lines.push(format!("p50_bytes_per_ms: {:.3}", summary.p50));
+            lines.push(format!("p99_bytes_per_ms: {:.3}", summary.p99));
+        } else {
+            lines.push(format!("min_ms: {:.3}", summary.min));
+            lines.push(format!("max_ms: {:.3}", summary.max));
+            lines.push(format!("avg_ms: {:.3}", summary.avg));
+            lines.push(format!("p50_ms: {:.3}", summary.p50));
+            lines.push(format!("p99_ms: {:.3}", summary.p99));
+        }
     }
 
     if let Some(setup_summary) = &report.setup_summary {
