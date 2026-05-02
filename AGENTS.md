@@ -37,6 +37,7 @@
   - `src/model.rs`：延迟模式按 warmup/parallel/number 裁剪原始样本窗口后再过滤成功样本统计
   - `src/ssh/client.rs`：认证阶段错误统一为 authentication 前缀分类
   - `src/model.rs`：throughput 报告新增 setup latency 聚合字段
+  - `src/ssh/session.rs`：throughput setup latency 覆盖 session open + exec 请求阶段
 
 ## 实现约束
 
