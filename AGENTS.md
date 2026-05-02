@@ -40,6 +40,7 @@
   - `src/ssh/session.rs`：throughput setup latency 覆盖 session open + exec 请求阶段
   - `src/ssh/client.rs`：连接阶段错误映射细化到 handshake/tcp connect
   - `src/ssh/session.rs`：command 超时场景正确标记 missing exit status
+  - `src/report.rs`：throughput 分位数文本输出改为 bytes_per_ms 单位标签
 
 ## 实现约束
 
