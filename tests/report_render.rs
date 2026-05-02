@@ -135,3 +135,22 @@ fn trims_latency_window_before_filtering_successes() {
     assert_eq!(summary.min, 10.0);
     assert_eq!(summary.max, 30.0);
 }
+
+#[test]
+fn reports_missing_exit_status_count() {
+    let failed = SampleOutcome {
+        target: Target::new("u", "h", 22),
+        success: false,
+        metric_value: None,
+        setup_time_ms: None,
+        bytes_transferred: 0,
+        missing_exit_status: true,
+        error_kind: Some(ErrorKind::CommandTimeout),
+        error: Some("timeout after eof fallback".to_string()),
+    };
+
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Command, &[failed], 1000.0, 0, 1, 1);
+    let rendered = render_text_report(&report);
+
+    assert!(rendered.contains("missing_exit_status: 1"));
+}

@@ -42,13 +42,13 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                                 error_kind: None,
                                 error: None,
                             },
-                            Err(error) => SampleOutcome {
+                            Err((error, missing_exit_status)) => SampleOutcome {
                                 target,
                                 success: false,
                                 metric_value: None,
                                 setup_time_ms: None,
                                 bytes_transferred: 0,
-                                missing_exit_status: false,
+                                missing_exit_status,
                                 error_kind: Some(classify_error(&error)),
                                 error: Some(error.to_string()),
                             },

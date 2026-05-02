@@ -34,17 +34,17 @@ pub async fn execute_command(
     session: &client::Handle<crate::ssh::client::AcceptAllClient>,
     command: &str,
     wait_timeout: Duration,
-) -> Result<(Option<u32>, bool, u64), AppError> {
+) -> Result<(Option<u32>, bool, u64), (AppError, bool)> {
     let mut channel = open_session(session).await.map_err(|error| {
-        AppError::Config(format!(
-            "session_open: {}",
-            error.to_string()
-        ))
+        (
+            AppError::Config(format!("session_open: {}", error.to_string())),
+            false,
+        )
     })?;
     channel
         .exec(true, command)
         .await
-        .map_err(|error| AppError::Config(format!("exec: {}", error)))?;
+        .map_err(|error| (AppError::Config(format!("exec: {}", error)), false))?;
 
     let mut exit_status = None;
     let mut missing_exit_status = false;
@@ -53,10 +53,15 @@ pub async fn execute_command(
     loop {
         let message = timeout(wait_timeout, channel.wait())
             .await
-            .map_err(|_| AppError::Config(format!(
-                "command_timeout: {}",
-                "waiting for command event timed out"
-            )))?;
+            .map_err(|_| {
+                (
+                    AppError::Config(format!(
+                        "command_timeout: {}",
+                        "waiting for command event timed out"
+                    )),
+                    exit_status.is_none(),
+                )
+            })?;
 
         let Some(message) = message else {
             break;
@@ -81,7 +86,10 @@ pub async fn execute_command(
         }
     }
 
-    channel.close().await?;
+    channel
+        .close()
+        .await
+        .map_err(|error| (AppError::Config(format!("exec: {}", error)), missing_exit_status))?;
     Ok((exit_status, missing_exit_status, bytes_read))
 }
 
