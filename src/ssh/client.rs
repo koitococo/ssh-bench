@@ -76,8 +76,8 @@ pub fn client_config(profile: ClientProfile) -> Arc<client::Config> {
         },
         ClientProfile::Throughput => client::Config {
             inactivity_timeout: Some(Duration::from_secs(5)),
-            window_size: 16 * 1024 * 1024,
-            channel_buffer_size: 1024,
+            window_size: 8 * 1024 * 1024,
+            channel_buffer_size: 512,
             nodelay: true,
             ..Default::default()
         },
