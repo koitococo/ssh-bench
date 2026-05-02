@@ -46,6 +46,7 @@
   - `src/report.rs`：文本报告改为人类可读单位输出，并将错误类别稳定渲染为 snake_case
   - `tests/report_render.rs`：补充文本报告单位缩放与裁剪窗口行为测试
   - `docs/superpowers/specs/2026-05-02-ssh-bench-design.md`：补充 connect-list 空白行处理与文本报告展示约定
+  - `tests/cli_config.rs`：补充 identity 必填、runner 选择、默认 throughput 模板与模板占位符校验测试
 
 ## 实现约束
 

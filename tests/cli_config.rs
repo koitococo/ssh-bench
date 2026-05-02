@@ -1,4 +1,5 @@
 use clap::Parser;
+use ssh_bench::bench::select_runner_kind;
 use ssh_bench::cli::{BenchmarkKind, Cli, TargetInput};
 use ssh_bench::ssh::session::render_throughput_command;
 
@@ -166,4 +167,63 @@ fn rounds_up_non_integral_mib_count() {
     .unwrap();
 
     assert_eq!(command, "dd if=/tmp/data.bin bs=1M count=2");
+}
+
+#[test]
+fn requires_identity_argument_at_parse_time() {
+    let result = Cli::try_parse_from([
+        "ssh-bench",
+        "--parallel",
+        "2",
+        "--number",
+        "10",
+        "--type",
+        "auth",
+        "--connect",
+        "alice@example.com:22",
+    ]);
+
+    let error = result.expect_err("missing identity should fail parse");
+    assert!(error.to_string().contains("--identity <IDENTITY>"));
+}
+
+#[test]
+fn selects_runner_for_benchmark_kind() {
+    assert_eq!(select_runner_kind(BenchmarkKind::Throughput), "throughput");
+    assert_eq!(select_runner_kind(BenchmarkKind::Command), "command");
+}
+
+#[test]
+fn uses_default_throughput_template_when_omitted() {
+    let cli = Cli::parse_from([
+        "ssh-bench",
+        "--parallel",
+        "4",
+        "--number",
+        "0",
+        "--type",
+        "throughput",
+        "--connect",
+        "alice@example.com:22",
+        "--identity",
+        "/tmp/id_ed25519",
+        "--file",
+        "/tmp/data.bin",
+        "--size",
+        "3MiB",
+    ]);
+
+    let config = cli.into_config().unwrap();
+    let command = render_throughput_command(&config.throughput_command, &config.file, config.size_bytes)
+        .unwrap();
+
+    assert_eq!(command, "dd if=/tmp/data.bin bs=1M count=3");
+}
+
+#[test]
+fn rejects_throughput_template_without_required_placeholders() {
+    let error = render_throughput_command("dd if={file} bs=1M", "/dev/zero", 1024 * 1024)
+        .expect_err("missing count placeholder should fail");
+
+    assert!(error.contains("{file} and {count}"));
 }
