@@ -5,7 +5,7 @@ use futures::future::join_all;
 use crate::cli::Config;
 use crate::error::AppError;
 use crate::model::SampleOutcome;
-use crate::ssh::client::{connect_authenticated, disconnect};
+use crate::ssh::client::{ClientProfile, connect_authenticated_with_profile, disconnect};
 use crate::ssh::session::{classify_error, read_throughput, render_throughput_command};
 use crate::target::Target;
 
@@ -27,7 +27,13 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
             let command = render_throughput_command(&throughput_command, &file, size_bytes)
                 .map_err(AppError::Config)?;
 
-            let sample = match connect_authenticated(&target, &identity_path).await {
+            let sample = match connect_authenticated_with_profile(
+                &target,
+                &identity_path,
+                ClientProfile::Throughput,
+            )
+            .await
+            {
                 Ok(mut session) => {
                     let throughput_result =
                         read_throughput(&session, &command, size_bytes, Duration::from_secs(5))
