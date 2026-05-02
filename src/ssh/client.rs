@@ -70,15 +70,8 @@ pub async fn connect_authenticated_with_profile(
 
 pub fn client_config(profile: ClientProfile) -> Arc<client::Config> {
     Arc::new(match profile {
-        ClientProfile::Default => client::Config {
+        ClientProfile::Default | ClientProfile::Throughput => client::Config {
             inactivity_timeout: Some(Duration::from_secs(5)),
-            ..Default::default()
-        },
-        ClientProfile::Throughput => client::Config {
-            inactivity_timeout: Some(Duration::from_secs(5)),
-            window_size: 8 * 1024 * 1024,
-            channel_buffer_size: 512,
-            nodelay: true,
             ..Default::default()
         },
     })
