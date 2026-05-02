@@ -4,13 +4,12 @@
 
 - 项目名：`ssh-bench`
 - 当前阶段：实现中
-- 当前阶段：实现中
 - 已完成：
   - 需求设计文档已写入 `docs/superpowers/specs/2026-05-02-ssh-bench-design.md`
   - 过程性实施文档已写入 `.tmp/implementation-context.md`
   - 过程性实施计划已写入 `.tmp/2026-05-02-ssh-bench-implementation-plan.md`
 - 正在进行：
-  - 补齐剩余测试覆盖、静态检查与最终文档同步
+  - 进行最终静态检查与收尾提交
 - 已新增：
   - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
   - `tests/target_stats.rs`：统计纯逻辑测试
@@ -47,6 +46,8 @@
   - `tests/report_render.rs`：补充文本报告单位缩放与裁剪窗口行为测试
   - `docs/superpowers/specs/2026-05-02-ssh-bench-design.md`：补充 connect-list 空白行处理与文本报告展示约定
   - `tests/cli_config.rs`：补充 identity 必填、runner 选择、默认 throughput 模板与模板占位符校验测试
+  - `src/model.rs`：延迟模式成功/失败计数与错误分布改为基于裁剪后的 measured window 聚合
+  - `tests/report_render.rs`：补充延迟模式裁剪窗口计数口径回归测试
 
 ## 实现约束
 

@@ -6,18 +6,30 @@ use ssh_bench::target::Target;
 
 #[test]
 fn renders_json_report() {
-    let sample = SampleOutcome {
-        target: Target::new("u", "h", 22),
-        success: true,
-        metric_value: Some(12.0),
-        setup_time_ms: None,
-        bytes_transferred: 0,
-        missing_exit_status: false,
-        error_kind: None,
-        error: None,
-    };
+    let samples = vec![
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(12.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(20.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+    ];
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &[sample], 120.0, 0, 1, 1);
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &samples, 120.0, 0, 1, 1);
     let rendered = render_json_report(&report).unwrap();
 
     assert!(rendered.contains("\"success_count\": 1"));
@@ -46,9 +58,19 @@ fn renders_text_report() {
             error_kind: None,
             error: None,
         },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(24.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
     ];
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &samples, 120.0, 0, 1, 1);
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &samples, 120.0, 0, 1, 2);
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("benchmark: auth"));
@@ -75,7 +97,7 @@ fn renders_text_report_for_single_latency_sample_without_trimmed_summary() {
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("benchmark: auth"));
-    assert!(rendered.contains("success_count: 1"));
+    assert!(rendered.contains("success_count: 0"));
     assert!(rendered.contains("success_rate:"));
     assert!(rendered.contains("wall_clock: 120.000 ms"));
     assert!(!rendered.contains("p50:"));
@@ -83,18 +105,30 @@ fn renders_text_report_for_single_latency_sample_without_trimmed_summary() {
 
 #[test]
 fn renders_error_counts() {
-    let failed = SampleOutcome {
-        target: Target::new("u", "h", 22),
-        success: false,
-        metric_value: None,
-        setup_time_ms: None,
-        bytes_transferred: 0,
-        missing_exit_status: false,
-        error_kind: Some(ErrorKind::CommandTimeout),
-        error: Some("timeout".to_string()),
-    };
+    let samples = vec![
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: false,
+            metric_value: None,
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: Some(ErrorKind::CommandTimeout),
+            error: Some("timeout".to_string()),
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(10.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+    ];
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Command, &[failed], 1000.0, 0, 1, 1);
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Command, &samples, 1000.0, 0, 1, 1);
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("error_counts:"));
@@ -114,7 +148,8 @@ fn renders_aggregate_throughput_field() {
         error: None,
     };
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Throughput, &[sample], 1000.0, 0, 1, 0);
+    let report =
+        BenchmarkReport::from_samples(BenchmarkKind::Throughput, &[sample], 1000.0, 0, 1, 0);
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("aggregate_rate: 3.906 KiB/s"));
@@ -177,18 +212,30 @@ fn trims_latency_window_before_filtering_successes() {
 
 #[test]
 fn reports_missing_exit_status_count() {
-    let failed = SampleOutcome {
-        target: Target::new("u", "h", 22),
-        success: false,
-        metric_value: None,
-        setup_time_ms: None,
-        bytes_transferred: 0,
-        missing_exit_status: true,
-        error_kind: Some(ErrorKind::CommandTimeout),
-        error: Some("timeout after eof fallback".to_string()),
-    };
+    let samples = vec![
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: false,
+            metric_value: None,
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: true,
+            error_kind: Some(ErrorKind::CommandTimeout),
+            error: Some("timeout after eof fallback".to_string()),
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(10.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+    ];
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Command, &[failed], 1000.0, 0, 1, 1);
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Command, &samples, 1000.0, 0, 1, 1);
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("missing_exit_status: 1"));
@@ -207,8 +254,65 @@ fn reports_missing_exit_status_count_for_throughput() {
         error: Some("stream closed without exit status".to_string()),
     };
 
-    let report = BenchmarkReport::from_samples(BenchmarkKind::Throughput, &[failed], 1000.0, 0, 1, 0);
+    let report =
+        BenchmarkReport::from_samples(BenchmarkKind::Throughput, &[failed], 1000.0, 0, 1, 0);
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("missing_exit_status: 1"));
+}
+
+#[test]
+fn latency_counts_use_trimmed_measurement_window() {
+    let samples = vec![
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: false,
+            metric_value: None,
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: Some(ErrorKind::CommandTimeout),
+            error: Some("warmup fail".to_string()),
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(10.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: false,
+            metric_value: None,
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: true,
+            error_kind: Some(ErrorKind::Exec),
+            error: Some("measured fail".to_string()),
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: false,
+            metric_value: None,
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: Some(ErrorKind::Authentication),
+            error: Some("tail fail".to_string()),
+        },
+    ];
+
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Command, &samples, 1000.0, 1, 1, 2);
+
+    assert_eq!(report.success_count, 1);
+    assert_eq!(report.failure_count, 1);
+    assert_eq!(report.missing_exit_status, 1);
+    assert_eq!(report.error_counts.get(&ErrorKind::Exec), Some(&1));
+    assert_eq!(report.error_counts.get(&ErrorKind::CommandTimeout), None);
+    assert_eq!(report.error_counts.get(&ErrorKind::Authentication), None);
+    assert_eq!(report.errors, vec!["measured fail".to_string()]);
 }

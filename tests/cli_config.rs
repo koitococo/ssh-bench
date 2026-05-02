@@ -214,8 +214,9 @@ fn uses_default_throughput_template_when_omitted() {
     ]);
 
     let config = cli.into_config().unwrap();
-    let command = render_throughput_command(&config.throughput_command, &config.file, config.size_bytes)
-        .unwrap();
+    let command =
+        render_throughput_command(&config.throughput_command, &config.file, config.size_bytes)
+            .unwrap();
 
     assert_eq!(command, "dd if=/tmp/data.bin bs=1M count=3");
 }

@@ -34,7 +34,13 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                             .await;
                     disconnect(&mut session).await?;
                     match throughput_result {
-                        Ok((bytes_read, _status, missing_exit_status, setup_elapsed_ms, read_elapsed_ms)) => {
+                        Ok((
+                            bytes_read,
+                            _status,
+                            missing_exit_status,
+                            setup_elapsed_ms,
+                            read_elapsed_ms,
+                        )) => {
                             let rate = if read_elapsed_ms > 0.0 {
                                 bytes_read as f64 / read_elapsed_ms
                             } else {

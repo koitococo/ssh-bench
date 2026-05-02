@@ -35,12 +35,9 @@ pub async fn execute_command(
     command: &str,
     wait_timeout: Duration,
 ) -> Result<(Option<u32>, bool, u64), (AppError, bool)> {
-    let mut channel = open_session(session).await.map_err(|error| {
-        (
-            AppError::Config(format!("session_open: {}", error.to_string())),
-            false,
-        )
-    })?;
+    let mut channel = open_session(session)
+        .await
+        .map_err(|error| (AppError::Config(format!("session_open: {}", error)), false))?;
     channel
         .exec(true, command)
         .await
@@ -51,17 +48,15 @@ pub async fn execute_command(
     let mut bytes_read = 0_u64;
 
     loop {
-        let message = timeout(wait_timeout, channel.wait())
-            .await
-            .map_err(|_| {
-                (
-                    AppError::Config(format!(
-                        "command_timeout: {}",
-                        "waiting for command event timed out"
-                    )),
-                    exit_status.is_none(),
-                )
-            })?;
+        let message = timeout(wait_timeout, channel.wait()).await.map_err(|_| {
+            (
+                AppError::Config(format!(
+                    "command_timeout: {}",
+                    "waiting for command event timed out"
+                )),
+                exit_status.is_none(),
+            )
+        })?;
 
         let Some(message) = message else {
             break;
@@ -86,10 +81,12 @@ pub async fn execute_command(
         }
     }
 
-    channel
-        .close()
-        .await
-        .map_err(|error| (AppError::Config(format!("exec: {}", error)), missing_exit_status))?;
+    channel.close().await.map_err(|error| {
+        (
+            AppError::Config(format!("exec: {}", error)),
+            missing_exit_status,
+        )
+    })?;
     Ok((exit_status, missing_exit_status, bytes_read))
 }
 
@@ -100,12 +97,9 @@ pub async fn read_throughput(
     wait_timeout: Duration,
 ) -> Result<(u64, Option<u32>, bool, f64, f64), (AppError, bool)> {
     let setup_started = std::time::Instant::now();
-    let mut channel = open_session(session).await.map_err(|error| {
-        (
-            AppError::Config(format!("session_open: {}", error.to_string())),
-            false,
-        )
-    })?;
+    let mut channel = open_session(session)
+        .await
+        .map_err(|error| (AppError::Config(format!("session_open: {}", error)), false))?;
     channel
         .exec(true, command)
         .await
@@ -122,17 +116,15 @@ pub async fn read_throughput(
             break;
         }
 
-        let message = timeout(wait_timeout, channel.wait())
-            .await
-            .map_err(|_| {
-                (
-                    AppError::Config(format!(
-                        "read_timeout: {}",
-                        "reading throughput stream timed out"
-                    )),
-                    exit_status.is_none(),
-                )
-            })?;
+        let message = timeout(wait_timeout, channel.wait()).await.map_err(|_| {
+            (
+                AppError::Config(format!(
+                    "read_timeout: {}",
+                    "reading throughput stream timed out"
+                )),
+                exit_status.is_none(),
+            )
+        })?;
 
         let Some(message) = message else {
             break;
@@ -162,10 +154,12 @@ pub async fn read_throughput(
         missing_exit_status = true;
     }
     let read_elapsed_ms = read_started.elapsed().as_secs_f64() * 1000.0;
-    channel
-        .close()
-        .await
-        .map_err(|error| (AppError::Config(format!("exec: {}", error)), missing_exit_status))?;
+    channel.close().await.map_err(|error| {
+        (
+            AppError::Config(format!("exec: {}", error)),
+            missing_exit_status,
+        )
+    })?;
     Ok((
         total.min(size_limit),
         exit_status,
@@ -179,12 +173,18 @@ pub fn classify_error(error: &AppError) -> ErrorKind {
     match error {
         AppError::Config(message) if message.starts_with("key_read:") => ErrorKind::KeyRead,
         AppError::Config(message) if message.starts_with("tcp_connect:") => ErrorKind::TcpConnect,
-        AppError::Config(message) if message.starts_with("ssh_handshake:") => ErrorKind::SshHandshake,
+        AppError::Config(message) if message.starts_with("ssh_handshake:") => {
+            ErrorKind::SshHandshake
+        }
         AppError::Config(message) if message.starts_with("key_format:") => ErrorKind::KeyFormat,
-        AppError::Config(message) if message.starts_with("authentication:") => ErrorKind::Authentication,
+        AppError::Config(message) if message.starts_with("authentication:") => {
+            ErrorKind::Authentication
+        }
         AppError::Config(message) if message.starts_with("session_open:") => ErrorKind::SessionOpen,
         AppError::Config(message) if message.starts_with("exec:") => ErrorKind::Exec,
-        AppError::Config(message) if message.starts_with("command_timeout:") => ErrorKind::CommandTimeout,
+        AppError::Config(message) if message.starts_with("command_timeout:") => {
+            ErrorKind::CommandTimeout
+        }
         AppError::Config(message) if message.starts_with("read_timeout:") => ErrorKind::ReadTimeout,
         _ => error.kind(),
     }

@@ -46,40 +46,49 @@ impl BenchmarkReport {
         parallel: usize,
         number: usize,
     ) -> Self {
+        let measured_samples = if matches!(kind, BenchmarkKind::Throughput) {
+            samples.to_vec()
+        } else {
+            select_measured_window(samples, warmup, parallel, number)
+        };
+
         let benchmark = kind.as_str();
-        let success_count = samples.iter().filter(|sample| sample.success).count();
-        let failure_count = samples.len().saturating_sub(success_count);
-        let missing_exit_status = samples
+        let success_count = measured_samples
+            .iter()
+            .filter(|sample| sample.success)
+            .count();
+        let failure_count = measured_samples.len().saturating_sub(success_count);
+        let missing_exit_status = measured_samples
             .iter()
             .filter(|sample| sample.missing_exit_status)
             .count();
-        let error_counts = samples.iter().filter_map(|sample| sample.error_kind.clone()).fold(
-            BTreeMap::new(),
-            |mut counts, kind| {
+        let error_counts = measured_samples
+            .iter()
+            .filter_map(|sample| sample.error_kind.clone())
+            .fold(BTreeMap::new(), |mut counts, kind| {
                 *counts.entry(kind).or_insert(0) += 1;
                 counts
-            },
-        );
-        let errors = samples
+            });
+        let errors = measured_samples
             .iter()
             .filter_map(|sample| sample.error.clone())
             .collect::<Vec<_>>();
         let measured_metrics = if matches!(kind, BenchmarkKind::Throughput) {
-            samples
+            measured_samples
                 .iter()
                 .filter(|sample| sample.success)
                 .filter_map(|sample| sample.metric_value)
                 .collect::<Vec<_>>()
         } else {
-            select_measured_window(samples, warmup, parallel, number)
-                .into_iter()
+            measured_samples
+                .iter()
                 .filter(|sample| sample.success)
                 .filter_map(|sample| sample.metric_value)
                 .collect::<Vec<_>>()
         };
         let summary = compute_latency_summary(&measured_metrics);
         let setup_metrics = if matches!(kind, BenchmarkKind::Throughput) {
-            samples
+            measured_samples
                 .iter()
                 .filter(|sample| sample.success)
                 .filter_map(|sample| sample.setup_time_ms)
@@ -88,7 +97,7 @@ impl BenchmarkReport {
             Vec::new()
         };
         let setup_summary = compute_latency_summary(&setup_metrics);
-        let total_bytes = samples
+        let total_bytes = measured_samples
             .iter()
             .filter(|sample| sample.success)
             .map(|sample| sample.bytes_transferred)

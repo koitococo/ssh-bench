@@ -1,7 +1,7 @@
 use ssh_bench::stats::compute_latency_summary;
 use ssh_bench::stats::select_measured_window;
-use ssh_bench::target::load_targets;
 use ssh_bench::target::Target;
+use ssh_bench::target::load_targets;
 use ssh_bench::target::parse_target;
 use ssh_bench::target::pick_target_for_worker;
 
@@ -41,10 +41,7 @@ fn rotates_targets_by_worker_and_iteration() {
 
 #[test]
 fn loads_targets_from_file_with_trimmed_lines() {
-    let path = std::env::temp_dir().join(format!(
-        "ssh-bench-targets-{}.txt",
-        std::process::id()
-    ));
+    let path = std::env::temp_dir().join(format!("ssh-bench-targets-{}.txt", std::process::id()));
     std::fs::write(&path, " alice@example.com:22 \n\n bob@example.com:2222 \n").unwrap();
 
     let targets = load_targets(&path).unwrap();
