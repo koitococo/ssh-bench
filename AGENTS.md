@@ -48,6 +48,8 @@
   - `tests/cli_config.rs`：补充 identity 必填、runner 选择、默认 throughput 模板与模板占位符校验测试
   - `src/model.rs`：延迟模式成功/失败计数与错误分布改为基于裁剪后的 measured window 聚合
   - `tests/report_render.rs`：补充延迟模式裁剪窗口计数口径回归测试
+  - `src/ssh/client.rs`：新增 `ClientProfile` 与 `connect_authenticated_with_profile`，throughput profile 经实测回退为默认 `russh` 配置
+  - `src/bench/throughput.rs`：throughput runner 接入 `ClientProfile::Throughput`，disconnect 改为 best-effort 以避免清理失败覆盖已采集结果
 
 ## 实现约束
 
