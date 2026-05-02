@@ -65,10 +65,19 @@ pub async fn disconnect(session: &mut client::Handle<AcceptAllClient>) -> Result
 }
 
 fn map_connect_error(error: russh::Error, target: &Target) -> AppError {
-    let label = if target.host.parse::<std::net::Ipv4Addr>().is_ok() {
-        ErrorKind::TcpConnect
-    } else {
-        ErrorKind::SshHandshake
+    let label = match &error {
+        russh::Error::IO(_) | russh::Error::ConnectionTimeout | russh::Error::Disconnect => {
+            ErrorKind::TcpConnect
+        }
+        russh::Error::KexInit
+        | russh::Error::Kex
+        | russh::Error::Version
+        | russh::Error::NoCommonAlgo { .. }
+        | russh::Error::KeyChanged { .. }
+        | russh::Error::WrongServerSig
+        | russh::Error::UnknownKey => ErrorKind::SshHandshake,
+        _ if target.host.parse::<std::net::Ipv4Addr>().is_ok() => ErrorKind::TcpConnect,
+        _ => ErrorKind::SshHandshake,
     };
 
     AppError::Config(format!("{}: {}", format_error_kind(&label), error))
