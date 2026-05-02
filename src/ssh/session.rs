@@ -90,7 +90,8 @@ pub async fn read_throughput(
     command: &str,
     size_limit: u64,
     wait_timeout: Duration,
-) -> Result<(u64, Option<u32>, bool), AppError> {
+) -> Result<(u64, Option<u32>, bool, f64, f64), AppError> {
+    let setup_started = std::time::Instant::now();
     let mut channel = open_session(session).await.map_err(|error| {
         AppError::Config(format!(
             "session_open: {}",
@@ -101,6 +102,8 @@ pub async fn read_throughput(
         .exec(true, command)
         .await
         .map_err(|error| AppError::Config(format!("exec: {}", error)))?;
+    let setup_elapsed_ms = setup_started.elapsed().as_secs_f64() * 1000.0;
+    let read_started = std::time::Instant::now();
 
     let mut total = 0_u64;
     let mut exit_status = None;
@@ -139,8 +142,15 @@ pub async fn read_throughput(
     }
 
     let missing_exit_status = exit_status.is_none();
+    let read_elapsed_ms = read_started.elapsed().as_secs_f64() * 1000.0;
     channel.close().await?;
-    Ok((total.min(size_limit), exit_status, missing_exit_status))
+    Ok((
+        total.min(size_limit),
+        exit_status,
+        missing_exit_status,
+        setup_elapsed_ms,
+        read_elapsed_ms,
+    ))
 }
 
 pub fn classify_error(error: &AppError) -> ErrorKind {

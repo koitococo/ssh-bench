@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use futures::future::join_all;
 
@@ -26,21 +26,17 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
             let target = crate::bench::select_target(&targets, worker, 0)?;
             let command = render_throughput_command(&throughput_command, &file, size_bytes)
                 .map_err(AppError::Config)?;
-            let setup_started = Instant::now();
 
             let sample = match connect_authenticated(&target, &identity_path).await {
                 Ok(mut session) => {
-                    let setup_elapsed_ms = setup_started.elapsed().as_secs_f64() * 1000.0;
-                    let read_started = Instant::now();
                     let throughput_result =
                         read_throughput(&session, &command, size_bytes, Duration::from_secs(5))
                             .await;
                     disconnect(&mut session).await?;
                     match throughput_result {
-                        Ok((bytes_read, _status, missing_exit_status)) => {
-                            let elapsed_ms = read_started.elapsed().as_secs_f64() * 1000.0;
-                            let rate = if elapsed_ms > 0.0 {
-                                bytes_read as f64 / elapsed_ms
+                        Ok((bytes_read, _status, missing_exit_status, setup_elapsed_ms, read_elapsed_ms)) => {
+                            let rate = if read_elapsed_ms > 0.0 {
+                                bytes_read as f64 / read_elapsed_ms
                             } else {
                                 0.0
                             };
@@ -60,7 +56,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                             target,
                             success: false,
                             metric_value: None,
-                            setup_time_ms: Some(setup_elapsed_ms),
+                            setup_time_ms: None,
                             bytes_transferred: 0,
                             missing_exit_status: false,
                             error_kind: Some(classify_error(&error)),
