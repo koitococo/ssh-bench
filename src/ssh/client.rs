@@ -14,6 +14,12 @@ use crate::target::Target;
 #[derive(Debug, Default)]
 pub struct AcceptAllClient;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClientProfile {
+    Default,
+    Throughput,
+}
+
 impl client::Handler for AcceptAllClient {
     type Error = russh::Error;
 
@@ -29,10 +35,15 @@ pub async fn connect_authenticated(
     target: &Target,
     identity_path: &std::path::Path,
 ) -> Result<client::Handle<AcceptAllClient>, AppError> {
-    let config = Arc::new(client::Config {
-        inactivity_timeout: Some(Duration::from_secs(5)),
-        ..Default::default()
-    });
+    connect_authenticated_with_profile(target, identity_path, ClientProfile::Default).await
+}
+
+pub async fn connect_authenticated_with_profile(
+    target: &Target,
+    identity_path: &std::path::Path,
+    profile: ClientProfile,
+) -> Result<client::Handle<AcceptAllClient>, AppError> {
+    let config = client_config(profile);
     let mut session = client::connect(config, (target.host.as_str(), target.port), AcceptAllClient)
         .await
         .map_err(|error| map_connect_error(error, target))?;
@@ -55,6 +66,22 @@ pub async fn connect_authenticated(
     }
 
     Ok(session)
+}
+
+pub fn client_config(profile: ClientProfile) -> Arc<client::Config> {
+    Arc::new(match profile {
+        ClientProfile::Default => client::Config {
+            inactivity_timeout: Some(Duration::from_secs(5)),
+            ..Default::default()
+        },
+        ClientProfile::Throughput => client::Config {
+            inactivity_timeout: Some(Duration::from_secs(5)),
+            window_size: 16 * 1024 * 1024,
+            channel_buffer_size: 1024,
+            nodelay: true,
+            ..Default::default()
+        },
+    })
 }
 
 pub async fn disconnect(session: &mut client::Handle<AcceptAllClient>) -> Result<(), AppError> {
