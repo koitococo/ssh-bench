@@ -38,7 +38,7 @@ pub async fn run(config: &Config, targets: &[Target]) -> Result<Vec<SampleOutcom
                     let throughput_result =
                         read_throughput(&session, &command, size_bytes, Duration::from_secs(5))
                             .await;
-                    disconnect(&mut session).await?;
+                    let _ = disconnect(&mut session).await;
                     match throughput_result {
                         Ok((
                             bytes_read,
