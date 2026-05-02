@@ -41,6 +41,7 @@
   - `src/ssh/client.rs`：连接阶段错误映射细化到 handshake/tcp connect
   - `src/ssh/session.rs`：command 超时场景正确标记 missing exit status
   - `src/report.rs`：throughput 分位数文本输出改为 bytes_per_ms 单位标签
+  - `src/cli.rs`：throughput 模式归一化为单轮执行，不使用 warmup/number
 
 ## 实现约束
 
