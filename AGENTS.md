@@ -42,6 +42,7 @@
   - `src/ssh/session.rs`：command 超时场景正确标记 missing exit status
   - `src/report.rs`：throughput 分位数文本输出改为 bytes_per_ms 单位标签
   - `src/cli.rs`：throughput 模式归一化为单轮执行，不使用 warmup/number
+  - `src/ssh/session.rs`：throughput 错误路径正确传递 missing exit status
 
 ## 实现约束
 
