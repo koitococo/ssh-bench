@@ -21,6 +21,26 @@ pub enum ErrorKind {
     Protocol,
 }
 
+impl ErrorKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Config => "config",
+            Self::Target => "target",
+            Self::KeyRead => "key_read",
+            Self::KeyFormat => "key_format",
+            Self::TcpConnect => "tcp_connect",
+            Self::SshHandshake => "ssh_handshake",
+            Self::Authentication => "authentication",
+            Self::SessionOpen => "session_open",
+            Self::Exec => "exec",
+            Self::CommandTimeout => "command_timeout",
+            Self::ReadTimeout => "read_timeout",
+            Self::Io => "io",
+            Self::Protocol => "protocol",
+        }
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum AppError {
     #[error("配置错误: {0}")]

@@ -25,6 +25,41 @@ fn renders_json_report() {
 
 #[test]
 fn renders_text_report() {
+    let samples = vec![
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(12.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+        SampleOutcome {
+            target: Target::new("u", "h", 22),
+            success: true,
+            metric_value: Some(18.0),
+            setup_time_ms: None,
+            bytes_transferred: 0,
+            missing_exit_status: false,
+            error_kind: None,
+            error: None,
+        },
+    ];
+
+    let report = BenchmarkReport::from_samples(BenchmarkKind::Auth, &samples, 120.0, 0, 1, 1);
+    let rendered = render_text_report(&report);
+
+    assert!(rendered.contains("benchmark: auth"));
+    assert!(rendered.contains("success_count: 2"));
+    assert!(rendered.contains("success_rate:"));
+    assert!(rendered.contains("wall_clock: 120.000 ms"));
+    assert!(rendered.contains("p50: 12.000 ms"));
+}
+
+#[test]
+fn renders_text_report_for_single_latency_sample_without_trimmed_summary() {
     let sample = SampleOutcome {
         target: Target::new("u", "h", 22),
         success: true,
@@ -41,7 +76,9 @@ fn renders_text_report() {
 
     assert!(rendered.contains("benchmark: auth"));
     assert!(rendered.contains("success_count: 1"));
-    assert!(rendered.contains("successes_per_second:"));
+    assert!(rendered.contains("success_rate:"));
+    assert!(rendered.contains("wall_clock: 120.000 ms"));
+    assert!(!rendered.contains("p50:"));
 }
 
 #[test]
@@ -61,7 +98,7 @@ fn renders_error_counts() {
     let rendered = render_text_report(&report);
 
     assert!(rendered.contains("error_counts:"));
-    assert!(rendered.contains("CommandTimeout: 1"));
+    assert!(rendered.contains("command_timeout: 1"));
 }
 
 #[test]
@@ -80,9 +117,10 @@ fn renders_aggregate_throughput_field() {
     let report = BenchmarkReport::from_samples(BenchmarkKind::Throughput, &[sample], 1000.0, 0, 1, 0);
     let rendered = render_text_report(&report);
 
-    assert!(rendered.contains("aggregate_rate_bytes_per_ms:"));
-    assert!(rendered.contains("setup_avg_ms:"));
-    assert!(rendered.contains("p50_bytes_per_ms:"));
+    assert!(rendered.contains("aggregate_rate: 3.906 KiB/s"));
+    assert!(rendered.contains("setup_avg: 12.000 ms"));
+    assert!(rendered.contains("p50_rate: 3.906 KiB/s"));
+    assert!(rendered.contains("total_bytes: 3.906 KiB"));
 }
 
 #[test]

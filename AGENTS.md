@@ -10,7 +10,7 @@
   - 过程性实施文档已写入 `.tmp/implementation-context.md`
   - 过程性实施计划已写入 `.tmp/2026-05-02-ssh-bench-implementation-plan.md`
 - 正在进行：
-  - 继续评估剩余设计差距并收尾
+  - 补齐剩余测试覆盖、静态检查与最终文档同步
 - 已新增：
   - `src/stats.rs`：最小延迟统计与样本窗口裁剪逻辑
   - `tests/target_stats.rs`：统计纯逻辑测试
@@ -43,6 +43,9 @@
   - `src/report.rs`：throughput 分位数文本输出改为 bytes_per_ms 单位标签
   - `src/cli.rs`：throughput 模式归一化为单轮执行，不使用 warmup/number
   - `src/ssh/session.rs`：throughput 错误路径正确传递 missing exit status
+  - `src/report.rs`：文本报告改为人类可读单位输出，并将错误类别稳定渲染为 snake_case
+  - `tests/report_render.rs`：补充文本报告单位缩放与裁剪窗口行为测试
+  - `docs/superpowers/specs/2026-05-02-ssh-bench-design.md`：补充 connect-list 空白行处理与文本报告展示约定
 
 ## 实现约束
 
