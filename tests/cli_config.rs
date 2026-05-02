@@ -112,6 +112,31 @@ fn throughput_allows_zero_number_and_parses_size() {
 }
 
 #[test]
+fn throughput_normalizes_unused_number_and_warmup() {
+    let cli = Cli::parse_from([
+        "ssh-bench",
+        "--parallel",
+        "4",
+        "--number",
+        "9",
+        "--warmup",
+        "3",
+        "--type",
+        "throughput",
+        "--connect",
+        "alice@example.com:22",
+        "--identity",
+        "/tmp/id_ed25519",
+    ]);
+
+    let config = cli.into_config().unwrap();
+
+    assert_eq!(config.kind, BenchmarkKind::Throughput);
+    assert_eq!(config.number, 0);
+    assert_eq!(config.warmup, 0);
+}
+
+#[test]
 fn latency_modes_require_positive_number() {
     let cli = Cli::parse_from([
         "ssh-bench",

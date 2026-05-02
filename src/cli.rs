@@ -110,10 +110,16 @@ impl Cli {
             }
         };
 
+        let (number, warmup) = if matches!(kind, BenchmarkKind::Throughput) {
+            (0, 0)
+        } else {
+            (self.number, self.warmup)
+        };
+
         Ok(Config {
             parallel: self.parallel,
-            number: self.number,
-            warmup: self.warmup,
+            number,
+            warmup,
             kind,
             target_input,
             identity_path: self.identity,
